@@ -95,6 +95,7 @@ type Work struct {
 	initOnce sync.Once
 	results  chan *result
 	stopCh   chan struct{}
+	stopped  bool
 	start    time.Duration
 
 	report *report
@@ -132,6 +133,7 @@ func (b *Work) Run() {
 func (b *Work) Stop() {
 	// Send stop signal so that workers can stop gracefully.
 	for i := 0; i < b.C; i++ {
+		b.stopped = true
 		b.stopCh <- struct{}{}
 	}
 }
@@ -152,10 +154,13 @@ func (b *Work) makeRequest(c *http.Client) {
 	var dnsDuration, connDuration, resDuration, reqDuration, delayDuration time.Duration
 	var req *http.Request
 	if b.RequestFunc != nil {
-		req = b.RequestFunc()
+		if req = b.RequestFunc(); req == nil && b.stopped {
+			return
+		}
 	} else {
 		req = cloneRequest(b.Request, b.RequestBody)
 	}
+
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(info httptrace.DNSStartInfo) {
 			dnsStart = now()

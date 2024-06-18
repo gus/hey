@@ -1,1 +1,5 @@
 bin/
+
+.envrc
+shell.nix
+
