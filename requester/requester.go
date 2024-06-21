@@ -154,7 +154,7 @@ func (b *Work) makeRequest(c *http.Client) {
 	var dnsDuration, connDuration, resDuration, reqDuration, delayDuration time.Duration
 	var req *http.Request
 	if b.RequestFunc != nil {
-		if req = b.RequestFunc(); req == nil && b.stopped {
+		if req = b.RequestFunc(); req == nil {
 			return
 		}
 	} else {
